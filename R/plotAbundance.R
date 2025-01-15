@@ -159,10 +159,6 @@
 NULL
 
 #' @rdname plotAbundance
-setGeneric("plotAbundance", signature = c("x"), function(x, ...)
-    standardGeneric("plotAbundance"))
-
-#' @rdname plotAbundance
 #' @importFrom ggplot2 facet_wrap
 #' @export
 setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
@@ -298,11 +294,13 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
 # This function ensures that all the time points have all the patients so that
 # comparison is possible.
 #' @importFrom dplyr group_by summarize pull select distinct mutate
-#'     row_number ungroup
+#'     row_number ungroup across
 #' @importFrom tidyr complete
 .add_paired_samples <- function(
         df, paired = FALSE, order.col.by = order_sample_by,
         order_sample_by = NULL, col.var = features, features = NULL, ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    colour_by <- count <- X <- NULL
     #
     if(!.is_a_bool(paired)){
         stop("'paired' must be TRUE or FALSE.", call. = FALSE)
@@ -362,10 +360,13 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
 # This function modifies factor of rows/features to follow the user-specified
 # order.
 #' @importFrom dplyr group_by summarise arrange desc distinct pull
+#' @importFrom S4Vectors unfactor
 .order_abundance_rows <- function(
         df, order.row.by = order_rank_by, order_rank_by = "name",
         row.levels = NULL, order.col.by = order_sample_by,
         order_sample_by = NULL, ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    colour_by <- Y <- mean_abundance <- NULL
     #
     correct <- .is_a_string(order.row.by) && order.row.by %in%
         c("name", "abund", "revabund")
@@ -420,6 +421,8 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
 .order_abundance_cols <- function(
         df, order.col.by = order_sample_by, order_sample_by = NULL,
         col.levels = NULL, decreasing = TRUE, ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    X <- Y <- colour_by <-  NULL
     # The ordering factor must be found from colData or be one of the rows
     is_coldata <- .is_a_string(order.col.by) && order.col.by %in% colnames(df)
     is_feat <- .is_a_string(order.col.by) && order.col.by %in% df$colour_by
@@ -494,6 +497,8 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
         use_relative = FALSE,
         ...
         ){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    X <- Y <- NULL
     # Start plotting. From barplot, we exclude 0 values. As we use borders by
     # default, 0 values get also borders which looks like they have also
     # abundance.
@@ -555,6 +560,8 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
         facet.cols = FALSE, facet.rows = one.facet,
         one.facet = one_facet, one_facet = FALSE, ncol = 2, scales = "fixed",
         ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    X <- NULL
     #
     if( !(is.null(col.var) || (is.character(col.var) &&
             all(col.var %in% colnames(df)))) ){
@@ -679,6 +686,8 @@ setMethod("plotAbundance", signature = c("SummarizedExperiment"), function(
         add_x_text,
         point_alpha,
         point_size){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    X <- Y <- NULL
     # If the values are factors, use coloring to plot them. This step is to
     # ensure that this functions works both with factors and numeric values.
     if( is.factor(feature_data$Y) ){

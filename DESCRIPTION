@@ -1,6 +1,6 @@
 Package: miaViz
 Title: Microbiome Analysis Plotting and Visualization
-Version: 1.15.4
+Version: 1.15.5
 Authors@R: 
     c(person(given = "Tuomas", family = "Borman", role = c("aut", "cre"),
              email = "tuomas.v.borman@utu.fi",
@@ -47,8 +47,6 @@ Imports:
     dplyr,
     ggnewscale,
     ggrepel,
-    ggplot2,
-    ggraph,
     ggtree,
     methods,
     rlang,
@@ -79,3 +77,6 @@ Remotes:
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+URL: https://github.com/microbiome/miaViz
+BugReports: https://github.com/microbiome/miaViz/issues
+

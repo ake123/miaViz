@@ -8,12 +8,12 @@
 #' \code{\link[TreeSummarizedExperiment:TreeSummarizedExperiment-constructor]{TreeSummarizedExperiment}}
 #' or a matrix of weights. The latter is returned as output from
 #' \code{\link[mia:runCCA]{getRDA}}.
-#' 
+#'
 #' @param dimred \code{Character scalar} or \code{integer scalar}. Determines
 #' the reduced dimension to
 #' plot. This is the output of \code{\link[mia:runCCA]{addRDA}} and resides in
 #' \code{reducedDim(tse, dimred)}.
-#' 
+#'
 #' @param ... additional parameters for plotting, inherited from
 #' \code{\link[scater:plotReducedDim]{plotReducedDim}},
 #' \code{\link[ggplot2:geom_label]{geom_label}} and
@@ -23,71 +23,71 @@
 #'   \code{c(TRUE, FALSE, "fill", "colour")}, indicating whether
 #'   ellipses should be present, absent, filled or colored.
 #'   (default: \code{ellipse.fill = TRUE})
-#'   
+#'
 #'   \item \code{ellipse.alpha}: \code{Numeric scalar}. Between 0 and 1.
 #'   Adjusts the opacity of ellipses. (Default: \code{0.2})
-#'   
+#'
 #'   \item \code{ellipse.linewidth}: \code{Numeric scalar}. Specifies the size
 #'   of ellipses. (Default: \code{0.1})
-#' 
+#'
 #'   \item \code{ellipse.linetype}: \code{Integer scalar}. Specifies the style
 #'   of ellipses. (Default: \code{1})
-#' 
+#'
 #'   \item \code{confidence.level}: \code{Numeric scalar}. Between 0 and 1.
 #'   Adjusts confidence level. (Default: \code{0.95})
-#' 
+#'
 #'   \item \code{add.vectors}: \code{Logical scalar} or \code{character vector}.
 #'   If boolean, should vectors appear in the plot. If character,
 #'   selects vectors that are showed. The matching is done with regular
 #'   expression. (Default: \code{TRUE})
-#' 
+#'
 #'   \item \code{vec.size}: \code{Numeric scalar}. Specifies the size of
 #'   vectors. (Default: \code{0.5})
-#' 
+#'
 #'   \item \code{vec.colour}: \code{Character scalar}. Specifies the colour of
 #'   vectors. (Default: \code{"black"})
-#' 
+#'
 #'   \item \code{vec.linetype}: \code{Integer scalar}. Specifies the style of
 #'   vector lines. (Default: \code{1})
-#' 
+#'
 #'   \item \code{arrow.size}: \code{Numeric scalar}. Specifies the size of
 #'   arrows. (Default: \code{arrow.size = 0.25})
-#' 
+#'
 #'   \item \code{label.size}: \code{Numeric scalar}. Specifies the size of text
 #'   and labels. (Default: \code{4})
-#' 
+#'
 #'   \item \code{label.colour}: \code{Character scalar}. Specifies the colour of
 #'   text and labels. (Default: \code{"black"})
-#' 
+#'
 #'   \item \code{sep.group}: \code{Character scalar}. Specifies the separator
 #'   used in the labels. (Default: \code{"\U2014"})
-#' 
+#'
 #'   \item \code{repl.underscore}: \code{Character scalar}. Used to replace
 #'   underscores in the labels. (Default: \code{" "})
-#' 
+#'
 #'   \item \code{vec.text}: \code{Logical scalar}. Should text instead of labels
 #'   be used to label vectors. (Default: \code{TRUE})
-#' 
+#'
 #'   \item \code{repel.labels}: \code{Logical scalar}. Should labels be
 #'   repelled. (Default: \code{TRUE})
-#' 
+#'
 #'   \item \code{parse.labels}: \code{Logical scalar}. Should labels be parsed.
 #'   (Default: \code{TRUE})
-#' 
+#'
 #'   \item \code{add.significance}: \code{Logical scalar}. Should explained
 #'   variance and p-value appear in the labels. (Default: \code{TRUE})
-#' 
+#'
 #'   \item \code{add.expl.var}: \code{Logical scalar}. Should explained
 #'   variance appear on the coordinate axes. (Default: \code{FALSE})
-#'   
+#'
 #'   \item \code{add.centroids}: \code{Logical scalar}. Should centroids
 #'   of variables be added. (Default: \code{FALSE})
-#'   
+#'
 #'   \item \code{add.species}: \code{Logical scalar}. Should species
 #'   scores be added. (Default: \code{FALSE})
 #' }
 #'
-#' 
+#'
 #' @details
 #' \code{plotRDA} and \code{plotCCA} create an RDA/CCA plot starting from the
 #' output of \code{\link[mia:runCCA]{CCA and RDA}} functions, two common methods
@@ -100,9 +100,9 @@
 #' getRDA. However, the first method is recommended because it provides
 #' the option to adjust aesthetics to the colData variables through the
 #' arguments inherited from \code{\link[scater:plotReducedDim]{plotReducedDim}}.
-#' 
-#' @return 
-#' A \code{ggplot2} object 
+#'
+#' @return
+#' A \code{ggplot2} object
 #'
 #' @name plotCCA
 #'
@@ -111,7 +111,7 @@
 #' library(miaViz)
 #' data("enterotype", package = "mia")
 #' tse <- enterotype
-#'  
+#'
 #' # Run RDA and store results into TreeSE
 #' tse <- addRDA(
 #'     tse,
@@ -120,22 +120,22 @@
 #'     distance = "bray",
 #'     na.action = na.exclude
 #'     )
-#'                
+#'
 #' # Create RDA plot coloured by variable
 #' plotRDA(tse, "RDA", colour.by = "ClinicalStatus")
-#'  
+#'
 #' # Create RDA plot with empty ellipses
 #' plotRDA(tse, "RDA", colour.by = "ClinicalStatus", add.ellipse = "colour")
-#'  
+#'
 #' # Create RDA plot with text encased in labels
 #' plotRDA(tse, "RDA", colour.by = "ClinicalStatus", vec.text = FALSE)
-#'  
+#'
 #' # Create RDA plot without repelling text
 #' plotRDA(tse, "RDA", colour.by = "ClinicalStatus", repel.labels = FALSE)
-#'  
+#'
 #' # Create RDA plot without vectors
 #' plotRDA(tse, "RDA", colour.by = "ClinicalStatus", add.vectors = FALSE)
-#'  
+#'
 #' # Calculate RDA as a separate object
 #' rda_mat <- getRDA(
 #'     tse,
@@ -144,16 +144,10 @@
 #'     distance = "bray",
 #'     na.action = na.exclude
 #'     )
-#'  
+#'
 #' # Create RDA plot from RDA matrix
 #' plotRDA(rda_mat)
 NULL
-
-#' @rdname plotCCA
-#' @aliases plotRDA
-#' @export
-setGeneric("plotCCA", signature = c("x"),
-    function(x, ...) standardGeneric("plotCCA"))
 
 #' @rdname plotCCA
 #' @aliases plotRDA
@@ -174,12 +168,6 @@ setMethod("plotCCA", signature = c(x = "matrix"),
         return(plotRDA(x, ...))
     }
 )
-
-#' @rdname plotCCA
-#' @aliases plotCCA
-#' @export
-setGeneric("plotRDA", signature = c("x"),
-    function(x, ...) standardGeneric("plotRDA"))
 
 #' @rdname plotCCA
 #' @aliases plotCCA
@@ -237,6 +225,7 @@ setMethod("plotRDA", signature = c(x = "matrix"),
 
 # Construct TreeSE from matrix to pass it to downstream functions. It is useful
 # for instance if get* functios was used instead of add*.
+#' @importFrom S4Vectors SimpleList
 .rda2tse <- function(object) {
     # Convert rda/cca object to TreeSE
     object <- TreeSummarizedExperiment(
@@ -364,7 +353,7 @@ setMethod("plotRDA", signature = c(x = "matrix"),
             vector_data <- NULL
         }
     }
-    
+
     # Get sample metadata. Check if all biplot covariate names can be found
     # from sample metadata. As biplot have merged names, we have to use sample
     # metadata later to make the vector labels tidier.
@@ -374,7 +363,7 @@ setMethod("plotRDA", signature = c(x = "matrix"),
         vapply(variable_names, function(y) grepl(y, x), logical(1L)),
         logical(ncol(coldata)) )
     all_var_found <- all( colSums(all_var_found) == 1)
-    
+
     # Make the vector labels tidier. For instance, covriate name and value
     # are separated. This applies only when labels were not provided by user.
     if( !is.null(vector_data) && is.null(vec.lab) && all_var_found ){
@@ -393,7 +382,7 @@ setMethod("plotRDA", signature = c(x = "matrix"),
         # If they are, add labels to data
         vector_data[["vector_label"]] <- vec.lab
     }
-    
+
     # Add significance information to the labels
     signif_data <- if( add.significance && !is.null(vector_data) &&
         all_var_found ) .get_rda_attribute(reduced_dim, "significance")
@@ -410,14 +399,14 @@ setMethod("plotRDA", signature = c(x = "matrix"),
         warning("Significance data was not found. please compute",
                 "CCA/RDA by using add* function.", call. = FALSE)
     }
-    
+
     return(vector_data)
 }
 
 # Make vector labels more tidy, i.e, separate variable and group names. We need
 # colData for this because in the biplot data, covariate name and values are
 # just combined, i.e., we do not know if "group" is the group name or is it
-# "groupName" when the name in biplot is "groupNameValue". 
+# "groupName" when the name in biplot is "groupNameValue".
 # Replace also underscores with space.
 .tidy_vector_labels <- function(
         vector_label, coldata, sep.group, repl.underscore, ...){
@@ -449,6 +438,8 @@ setMethod("plotRDA", signature = c(x = "matrix"),
 # This function adds significance info to vector labels
 .add_signif_to_vector_labels <- function(
         vector_label, var_names, signif_data, repl.underscore = " ", ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    italic <- NULL
     # Replace underscores from significance data and variable names to match
     # labels
     rownames(signif_data) <- lapply(
@@ -553,12 +544,11 @@ setMethod("plotRDA", signature = c(x = "matrix"),
     }
     #
     # If specified, get explained variance
-    if( add.expl.var && !is.null(expl.var) ){
+    if( add.expl.var && is.null(expl.var) ){
         eigen_vals <- attr(reduced_dim, "eig")
         # Convert to explained variance and take only first two components
         expl_var <- eigen_vals / sum(eigen_vals)
         expl_var <- expl_var[seq_len(ncomponents)]*100
-        expl_var <- summary(rda)$concont$importance*100
     }
     # Create argument list
     args <- c(list(object = tse, dimred = dimred, ncomponents = ncomponents,
@@ -601,6 +591,8 @@ setMethod("plotRDA", signature = c(x = "matrix"),
         plot, plot_data, add.ellipse = TRUE, ellipse.alpha = 0.2,
         ellipse.linewidth = 0.1, ellipse.linetype = 1, confidence.level = 0.95,
         ...){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    color <- NULL
     #
     if( !(add.ellipse %in% c(TRUE, FALSE, "fill", "color", "colour") &&
             length(add.ellipse) == 1L ) ){
@@ -737,6 +729,8 @@ setMethod("plotRDA", signature = c(x = "matrix"),
 
 # This function adds centroids or species layer to the plot.
 .rda_plotter_centroids_or_species <- function(plot, plot_data, type){
+    # To disable "no visible binding for global variable" message in cmdcheck
+    x <- y <- NULL
     data <- plot_data[[type]]
     if( !is.null(data) ){
         plot <- plot + geom_point(
