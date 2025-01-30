@@ -61,6 +61,12 @@ setGeneric("plotLoadings", signature = c("x"),
     function(x, ...)
     standardGeneric("plotLoadings"))
 
+#' @rdname plotMediation
+#' @export
+setGeneric("plotMediation", signature = c("x"),
+    function(x, ...)
+    standardGeneric("plotMediation"))
+
 #' @rdname plotPrevalence
 #' @export
 setGeneric("plotRowPrevalence", signature = c("x"),
