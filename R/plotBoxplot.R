@@ -81,6 +81,10 @@
 #'   barplot layout denoting the proportion of observations above
 #'   \code{threshold}. (Default: \code{FALSE})
 #'
+#'   \item \code{add.threshold}: \code{Logical scalar}. Whether to add a
+#'   \code{threshold} as horizontal line when \code{add.proportion = TRUE} is
+#'   specified. (Default: \code{TRUE})
+#'
 #'   \item \code{threshold}: \code{Numeric scalar}. Specifies threshold for the
 #'   barplots. (Default: \code{0})
 #'
@@ -88,7 +92,7 @@
 #'   beeswarm layout for points. (Default: \code{FALSE})
 #'
 #'   \item \code{jitter.width}: \code{Numeric scalar}. Width of jitter.
-#'   (Default: \code{0.2})
+#'   (Default: \code{0.5})
 #'
 #'   \item \code{jitter.height}: \code{Numeric scalar}. Height of jitter.
 #'   (Default: \code{0})
@@ -133,8 +137,12 @@
 #'   \item \code{line.colour}: \code{Character scalar}. Colour of lines.
 #'   (Default: \code{"grey70"})
 #'
-#'   \item \code{bar.width}: \code{Numeric scalar}. Width of proportion bars.
+#'   \item \code{box.width}: \code{Numeric scalar}. Width of boxes.
 #'   (Default: \code{0.75})
+#'
+#'   \item \code{bar.width}: \code{Numeric scalar}. Width of proportion bars.
+#'   By default, it is calculated based so that the width matches with the
+#'   width of boxes.
 #' }
 #'
 #' @examples
@@ -475,7 +483,7 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
 #' @importFrom dplyr ungroup
 .add_fixed_jitterdodge <- function(
         df, x, y, group.by, fill.by, facet.by,
-        jitter.width = 0.2, jitter.height = 0, dodge.width = 0.8,
+        jitter.width = 0.5, jitter.height = 0, dodge.width = 0.8,
         apply.beeswarm = FALSE, ...){
     if( !.is_a_numeric(jitter.width) ){
         stop("'jitter.width' must be numeric.", call. = FALSE)
@@ -483,8 +491,8 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
     if( !.is_a_numeric(jitter.height) ){
         stop("'jitter.height' must be numeric.", call. = FALSE)
     }
-    if( !.is_a_numeric(dodge.width) ){
-        stop("'dodge.width' must be numeric.", call. = FALSE)
+    if( !(.is_a_numeric(dodge.width) && (dodge.width >=0 && dodge.width <=1)) ){
+        stop("'dodge.width' must be numeric (0,1).", call. = FALSE)
     }
     if( !.is_a_bool(apply.beeswarm) ){
         stop("'apply.beeswarm' must be TRUE or FALSE.", call. = FALSE)
@@ -498,9 +506,11 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
     df <- .apply_dodge(df, x, dodge_var, dodge.width)
     # Apply either jitter or beeswarm (or none)
     if( !apply.beeswarm ){
-        df <- .apply_jitter(df, y, jitter.width, jitter.height)
+        df <- .apply_jitter(
+            df, x, y, dodge_var, dodge.width, jitter.width, jitter.height)
     } else{
-        df <- .apply_beeswarm(df, x, y, facet.by, dodge_var, dodge.width, ...)
+        df <- .apply_beeswarm(
+            df, x, y, facet.by, dodge_var, dodge.width, jitter.width, ...)
     }
     df <- df |> ungroup()
     return(df)
@@ -552,17 +562,39 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
 # This function adds random jitter to points.
 #' @importFrom dplyr mutate
 #' @importFrom stats runif
-.apply_jitter <- function(df, y, jitter.width, jitter.height){
+.apply_jitter <- function(
+        df, x, y, dodge.var, dodge.width, jitter.width, jitter.height){
     # To disable "no visible binding for global variable" message in cmdcheck
     x_point <-  NULL
+
+    # Calculate spreading
+    max_spread <- .get_jitter_spread(
+        df, x, dodge.var, dodge.width, jitter.width)
+    # Apply jitter
     df <- df |>
         mutate(
             # Add jitter for x axis
-            x_point = x_point + runif(n(), -jitter.width, jitter.width),
+            x_point = x_point + runif(n(), -max_spread/2, max_spread/2),
             # Add jitter for y-axis
             y_point = .data[[y]] + runif(n(), -jitter.height, jitter.height)
         )
     return(df)
+}
+
+# This function calculates the jitter spread based on grouping and user-defined
+# jitter width.
+.get_jitter_spread <- function(df, x, dodge.var, dodge.width, jitter.width){
+    # Get the number of groups. If the coloring/grouping is the same as x axis,
+    # it is not taken into account as x axis already have separate placement for
+    # points.
+    dodge.var <- if( !is.null(dodge.var) && dodge.var != x ) dodge.var
+    n_groups <- if (is.null(dodge.var)) 1L else
+        n_distinct(df[[dodge.var]])
+    # We adjust jitter x axis position based on dodge and the user-
+    # specified jitter width.
+    max_spread <- dodge.width / n_groups
+    max_spread <- jitter.width * max_spread
+    return(max_spread)
 }
 
 # This function adds beeswarm to points.
@@ -570,17 +602,19 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
 #' @importFrom dplyr group_by across all_of n_distinct group_modify
 #' @importFrom scales rescale
 .apply_beeswarm <- function(
-        df, x, y, facet.by, dodge.var, dodge.width,
+        df, x, y, facet.by, dodge.var, dodge.width, jitter.width,
         beeswarm.method = "swarm", beeswarm.corral = "none", ...){
     .require_package("beeswarm")
     # To suppress cmdcheck warning:
     # '::' or ':::' import not declared from: ‘beeswarm’
     beeswarm_fun <- getFromNamespace("beeswarm", "beeswarm")
+
+    # Calculate spreading of beeswarm
+    max_spread <- .get_jitter_spread(
+        df, x, dodge.var, dodge.width, jitter.width)
     # We apply beeswarm for each facet, x axis variable and group
-    grouping_vars <- c(facet.by, x, dodge.var)
-    grouping_vars <- grouping_vars[!is.null(grouping_vars)]
-    n_groups <- if (is.null(dodge.var)) n_distinct(df[[x]]) else
-        n_distinct(df[[dodge.var]])
+    grouping_vars <- c(facet.by, x, dodge.var) |> unique()
+
     # Apply beeswarm
     df <- df |>
         group_by(across(all_of(grouping_vars))) |>
@@ -592,8 +626,8 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
                 corral = beeswarm.corral,
                 do.plot = FALSE
             )
-            # We adjust beeswarm x axis position based on dodge
-            max_spread <- 0.5 * dodge.width / n_groups
+            # We adjust beeswarm x axis position based on dodge and the user-
+            # specified jitter-width
             x_scaled <- rescale(
                 swarm[["x"]], to = c(-max_spread/2, max_spread/2))
             .x[["x_point"]] <- mean(.x[["x_point"]]) + x_scaled
@@ -649,8 +683,11 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
 
 # This function adds boxplot layer
 .add_boxplot_layer <- function(
-        p, df, add.points, box.alpha = 0.5, dodge.width = 0.8,
+        p, df, add.points, box.alpha = 0.5, dodge.width = 0.8, box.width = 0.75,
         point.shape = 21, ...){
+    if( !.is_a_numeric(box.width) ){
+        stop("'box.width' must be numeric.", call. = FALSE)
+    }
     p <- p + geom_boxplot(
         mapping = aes(
             fill = if(!is.null(attributes(df)[["fill.by"]]))
@@ -665,7 +702,8 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
         # For boxplot, we can use ggplot's dodging functionality as these
         # positions are deterministic. For points, we set them manually with the
         # jitter.
-        position = position_dodge(width = dodge.width)
+        position = position_dodge(width = dodge.width),
+        width = box.width
     )
     return(p)
 }
@@ -736,7 +774,7 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
 # This function adds bar under the boxplot to denote prevalence.
 #' @importFrom dplyr group_by across all_of mutate
 .add_prevalence_bar <- function(
-        p, df, scales, threshold = 0, dodge.width = 0.8, bar.width = 0.75,
+        p, df, scales, threshold = 0, dodge.width = 0.8, add.threshold = TRUE,
         ...){
     # To disable "no visible binding for global variable" message in cmdcheck
     min_val <- max_val <- x_point <- width <- y_pos <- heigth <- prevalence <-
@@ -744,22 +782,15 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
     if( !.is_a_numeric(threshold) ){
         stop("'threshold' must be a single numeric value.", call. = FALSE)
     }
-    if( !.is_a_numeric(dodge.width) ){
-        stop("'dodge.width' must be numeric.", call. = FALSE)
+    if( !(.is_a_numeric(dodge.width) && (dodge.width >=0 && dodge.width <=1)) ){
+        stop("'dodge.width' must be numeric (0,1).", call. = FALSE)
     }
-    if( !.is_a_numeric(bar.width) ){
-        stop("'bar.width' must be numeric.", call. = FALSE)
+    if( !(length(add.threshold) && is.logical(add.threshold)) ){
+        stop("'add.threshold' must be TRUE or FALSE.", call. = FALSE)
     }
     #
-    # If facetting is not applied but there is grouping, the default width does
-    # not fit.
-    if( is.null(attributes(df)[["facet.by"]]) &&
-            (!is.null(attributes(df)[["fill.by"]]) ||
-            !is.null(attributes(df)[["group.by"]])) ){
-        group <- c(attributes(df)[["fill.by"]], attributes(df)[["group.by"]])
-        num_groups <- df[[group]] |> unique() |> length()
-        bar.width <- bar.width / num_groups
-    }
+    # Get bar width based on box width
+    bar_width <- .get_barplot_width(df, ...)
     # Determine dodge grouping variable, if any
     dodge_var <- if (!is.null(attributes(df)[["fill.by"]]))
         attributes(df)[["fill.by"]] else attributes(df)[["group.by"]]
@@ -799,7 +830,7 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
     df_prev <- df_prev |>
         mutate(
             heigth = (max(max_val) - min(min_val))*0.025,
-            width = bar.width
+            width = bar_width
         )
 
     # Add prevalence bar plot
@@ -822,7 +853,42 @@ setMethod("plotBoxplot", signature = c(object = "SummarizedExperiment"),
                 ymin = y_pos - heigth / 2,
                 ymax = y_pos + heigth / 2),
             fill = "black", inherit.aes = FALSE)
+
+    # Finally add threshold as horizontal line
+    if( add.threshold ){
+        p <- p + geom_hline(yintercept = threshold, linetype = 2)
+    }
+
     return(p)
+}
+
+# This function calculates the width of the prevalence bar plot based on width
+# of boxplot.
+.get_barplot_width <- function(df, box.width = 0.75, bar.width = NULL, ...){
+    if( !(is.null(bar.width) || .is_a_numeric(bar.width)) ){
+        stop("'bar.width' must be numeric.", call. = FALSE)
+    }
+    #
+    if( is.null(bar.width) ){
+        # If facetting is not specified, the bar width is simply the boxplot
+        # width divided by number of groups as we have to fit all boxes
+        # side-by-side.
+        bar.width <- (1 - (1-box.width))
+        # Get number of unique groups specified by groups
+        grouping_vars <- c(
+            attributes(df)[["group.by"]], attributes(df)[["fill.by"]]) |>
+            unique()
+        grouping_vars <- grouping_vars[
+            !grouping_vars %in% attributes(df)[["x"]] ]
+        n_groups <- nrow(unique(df[, grouping_vars, drop = FALSE]))
+        n_groups <- if( n_groups == 0L ) 1L else n_groups
+        # If grouping was not specified, we have to take into account the
+        # number of x axis variables.
+        n_xaxis <- length(unique(df[[attributes(df)[["x"]]]]))
+        n_groups <- if( n_groups == 0L ) 1/n_xaxis else n_groups
+        bar.width <- bar.width / n_groups
+    }
+    return(bar.width)
 }
 
 # This function adjust the theme and titles of the plot
