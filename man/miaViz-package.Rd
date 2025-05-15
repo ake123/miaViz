@@ -33,7 +33,7 @@ Other contributors:
   \item Noah De Gunst [contributor]
   \item Ely Seraidarian [contributor]
   \item Himmi Lindgren [contributor]
-  \item Akewak Jeba [contributor]
+  \item Akewak Jeba \email{akjeba@utu.fi} (\href{https://orcid.org/0009-0007-1347-7552}{ORCID}) [contributor]
   \item Vivian Ikeh [contributor]
 }
 

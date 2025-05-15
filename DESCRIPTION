@@ -22,7 +22,9 @@ Authors@R:
       person(given = "Noah", family = "De Gunst", role=c("ctb")),
       person(given = "Ely", family = "Seraidarian", role=c("ctb")),
       person(given = "Himmi", family = "Lindgren", role=c("ctb")),
-      person(given = "Akewak", family = "Jeba", role=c("ctb")),
+      person(given = "Akewak", family = "Jeba", role=c("ctb"),
+             email = "akjeba@utu.fi",
+             comment = c(ORCID = "0009-0007-1347-7552")),
       person(given = "Vivian", family = "Ikeh", role=c("ctb")))
 Description: The miaViz package implements functions to visualize
     TreeSummarizedExperiment objects especially in the context of microbiome
